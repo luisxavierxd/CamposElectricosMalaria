@@ -50,7 +50,7 @@ $$\vec{F}_{DEP} \propto \nabla|\vec{E}|^2$$
 ## Instalación
 
 ```bash
-git clone https://github.com/tu-usuario/tu-repo.git
+git clone https://github.com/luisxavierxd/CamposElectricosMalaria
 cd tu-repo
 python -m venv venv
 venv\Scripts\activate        # Windows
