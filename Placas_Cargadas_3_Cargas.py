@@ -33,8 +33,8 @@ xn = np.full(Nq, x_azul)
 zn = np.zeros(Nq)
 
 # ── Malla 2D (plano z=0, donde están las cargas) ──────────────────────────
-xx = np.linspace(-2, 4, 30)
-yy = np.linspace(-2, 2, 30)
+xx = np.linspace(-3, 3, 30)
+yy = np.linspace(-3, 3, 30)
 X, Y = np.meshgrid(xx, yy)
 Z    = np.zeros_like(X)
 
@@ -122,15 +122,14 @@ ax.quiver(X, Y, Z,
           color='#00cc44', linewidth=0.7, arrow_length_ratio=0.3)
 
 # ── Formato ───────────────────────────────────────────────────────────────
-ax.set_xlim(-2, 4)
-ax.set_ylim(-2, 2)
-ax.set_zlim(-2, 2)
+ax.set_xlim(-3, 3)
+ax.set_ylim(-3, 3)
+ax.set_zlim(-3, 3)
 ax.view_init(elev=30, azim=30)
 ax.set_xlabel(r'$x$ (m)', fontsize=12)
 ax.set_ylabel(r'$y$ (m)', fontsize=12)
 ax.set_zlabel(r'$z$ (m)', fontsize=12)
-ax.set_title('Campo eléctrico: arreglo de cargas en dos placas\n'
-             r'(roja: $+q$, azul: $-q$, flechas: $\vec{E}$ normalizado)',
+ax.set_title('Campo eléctrico: arreglo de cargas en dos placas',
              fontsize=13)
 ax.grid(True, linestyle='--', alpha=0.3)
 
