@@ -83,8 +83,8 @@ Los archivos PDF/PNG se guardan automáticamente en la carpeta de cada script.
 
 ## 👩‍💻 Autores
 
-Luis Xavier García Pimentel Ascencio
-Mario Donaciano Castillos Santos
-Angel Raúl Luna Tirado
-Fernando Gómez López 
-Camila Ruiz Casas
+- Luis Xavier García Pimentel Ascencio
+- Mario Donaciano Castillos Santos
+- Angel Raúl Luna Tirado
+- Fernando Gómez López
+- Camila Ruiz Casas
