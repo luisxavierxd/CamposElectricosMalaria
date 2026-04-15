@@ -7,141 +7,108 @@ from matplotlib.patches import Rectangle
 
 carpeta = os.path.dirname(os.path.abspath(__file__))
 
-# ── Parámetros físicos ────────────────────────────────────────────────────
-k  = 9e9
-q  = 1e-5
-Nq = 150   # ↓ reducido para rendimiento
-
-# Parámetros partículas
-N_particulas = 30
-dt = 0.02          # ↑ más estable
-m = 1
-max_steps = 2000   # evita loops infinitos
-
-# Diferenciación células
-q_sana = 0.8e-6
-q_infectada = 1.4e-6
-ruido = 0.3e-6  # variabilidad aleatoria en carga de las células
-#:v emtemp semch
-
-# ── Geometría ─────────────────────────────────────────────────────────────
-v           = 10
-dx_placa    = -1.0
-largo_roja  = 4
-largo_azul  = 1
-ancho       = -0.2
+# ── Geometría (compartida) ────────────────────────────────────────────────
+dx_placa   = -1.0
+largo_roja = 4
+largo_azul = 1
+ancho      = -0.2
 
 x_roja = dx_placa
 x_azul = dx_placa + 2
 
-# ── Posiciones de las cargas ──────────────────────────────────────────────
+Nq = 500
 yp = np.linspace(-largo_roja/2, largo_roja/2, Nq)
 xp = np.full(Nq, x_roja)
-
 yn = np.linspace(-largo_azul/2, largo_azul/2, Nq)
 xn = np.full(Nq, x_azul)
 
-# ── Malla 2D ─────────────────────────────────────────────────────────────
-xx = np.linspace(-3, 3, 100)
-yy = np.linspace(-3, 3, 100)
+# ── Campo normalizado (k=1, q=1) para visualización ───────────────────────
+k_vis, q_vis = 1, 1
+
+xx = np.linspace(-3, 3, 1000)
+yy = np.linspace(-3, 3, 1000)
 X, Y = np.meshgrid(xx, yy)
 
 Ex = np.zeros_like(X)
 Ey = np.zeros_like(Y)
 V  = np.zeros_like(X)
 
-for k_i in range(Nq):
-    rx = X - xp[k_i]; ry = Y - yp[k_i]
-    rp = np.sqrt(rx**2 + ry**2)
-    rp[rp < 0.15] = np.nan
-    Ex += k * q * rx / rp**3
-    Ey += k * q * ry / rp**3
+for i in range(Nq):
+    rx = X - xp[i]; ry = Y - yp[i]
+    rp = np.sqrt(rx**2 + ry**2); rp[rp < 0.15] = np.nan
+    Ex += k_vis * q_vis * rx / rp**3
+    Ey += k_vis * q_vis * ry / rp**3
 
-    rx = X - xn[k_i]; ry = Y - yn[k_i]
-    rn = np.sqrt(rx**2 + ry**2)
-    rn[rn < 0.15] = np.nan
-    Ex += k * (-q) * rx / rn**3
-    Ey += k * (-q) * ry / rn**3
+    rx = X - xn[i]; ry = Y - yn[i]
+    rn = np.sqrt(rx**2 + ry**2); rn[rn < 0.15] = np.nan
+    Ex += k_vis * (-q_vis) * rx / rn**3
+    Ey += k_vis * (-q_vis) * ry / rn**3
 
-    rp2 = np.sqrt((X - xp[k_i])**2 + (Y - yp[k_i])**2)
-    rn2 = np.sqrt((X - xn[k_i])**2 + (Y - yn[k_i])**2)
-    rp2[rp2 < 0.15] = 0.15
-    rn2[rn2 < 0.15] = 0.15
-    V += k * q / rp2 - k * q / rn2
+    rp2 = np.sqrt((X-xp[i])**2 + (Y-yp[i])**2); rp2[rp2 < 0.15] = 0.15
+    rn2 = np.sqrt((X-xn[i])**2 + (Y-yn[i])**2); rn2[rn2 < 0.15] = 0.15
+    V += k_vis*q_vis/rp2 - k_vis*q_vis/rn2
 
-# ── Simulación de partículas ─────────────────────────────────────────────
+# ── Simulación de partículas (k=9e9, q=1e-5, unidades físicas) ───────────
+k_fis, q_fis = 9e9, 1e-5
+Nq_sim = 150   # menos puntos para la dinámica (más rápido, suficiente precisión)
+
+yp_s = np.linspace(-largo_roja/2, largo_roja/2, Nq_sim)
+xp_s = np.full(Nq_sim, x_roja)
+yn_s = np.linspace(-largo_azul/2, largo_azul/2, Nq_sim)
+xn_s = np.full(Nq_sim, x_azul)
+
+N_particulas = 30
+dt = 0.02
+m  = 1
+max_steps = 2000
+v_ini = 10
+
+q_sana      = 0.8e-6
+q_infectada = 1.4e-6
+ruido       = 0.3e-6
+
+np.random.seed(42)
 trayectorias = []
 
 for i in range(N_particulas):
     x = np.random.uniform(-0.2, 0.2)
     y = 2.5
-    vx, vy = 0, -v
+    vx, vy = 0.0, -v_ini
 
     if np.random.rand() < 0.5:
-        q_base = q_sana
-        color = 'green'
+        q_base = q_sana;      color = 'lime';  label = 'Sana'
     else:
-        q_base = q_infectada
-        color = 'red'
+        q_base = q_infectada; color = 'red';   label = 'Infectada'
 
-    # Ruido gaussiano en la carga
-    q_part = q_base + np.random.normal(0, ruido)
-
-    # Evitar cargas negativas no físicas
-    q_part = max(q_part, 1e-9)
-
+    q_part = max(q_base + np.random.normal(0, ruido), 1e-9)
     xs, ys = [x], [y]
 
-    for step in range(max_steps):
+    for _ in range(max_steps):
+        rxp = x - xp_s; ryp = y - yp_s
+        rp  = np.sqrt(rxp**2 + ryp**2); mask_p = rp > 0.1
+        Fx = np.sum(k_fis * q_part * q_fis  * rxp[mask_p] / rp[mask_p]**3)
+        Fy = np.sum(k_fis * q_part * q_fis  * ryp[mask_p] / rp[mask_p]**3)
 
-        # ── Fuerza vectorizada ──
+        rxn = x - xn_s; ryn = y - yn_s
+        rn  = np.sqrt(rxn**2 + ryn**2); mask_n = rn > 0.1
+        Fx += np.sum(k_fis * q_part * (-q_fis) * rxn[mask_n] / rn[mask_n]**3)
+        Fy += np.sum(k_fis * q_part * (-q_fis) * ryn[mask_n] / rn[mask_n]**3)
 
-        # Placa positiva
-        rxp = x - xp
-        ryp = y - yp
-        rp = np.sqrt(rxp**2 + ryp**2)
-        mask_p = rp > 0.1
+        vx += (Fx/m)*dt; vy += (Fy/m)*dt
+        x  += vx*dt;     y  += vy*dt
+        xs.append(x); ys.append(y)
 
-        Fx_p = np.sum(k * q_part * q * rxp[mask_p] / rp[mask_p]**3)
-        Fy_p = np.sum(k * q_part * q * ryp[mask_p] / rp[mask_p]**3)
-
-        # Placa negativa
-        rxn = x - xn
-        ryn = y - yn
-        rn = np.sqrt(rxn**2 + ryn**2)
-        mask_n = rn > 0.1
-
-        Fx_n = np.sum(k * q_part * (-q) * rxn[mask_n] / rn[mask_n]**3)
-        Fy_n = np.sum(k * q_part * (-q) * ryn[mask_n] / rn[mask_n]**3)
-
-        Fx = Fx_p + Fx_n
-        Fy = Fy_p + Fy_n
-
-        # Integración (Euler)
-        ax = Fx / m
-        ay = Fy / m
-
-        vx += ax * dt
-        vy += ay * dt
-
-        x += vx * dt
-        y += vy * dt
-
-        xs.append(x)
-        ys.append(y)
-
-        # Condición de salida
         if y < -2.5 or abs(x) > 3:
             break
 
-    trayectorias.append((xs, ys, color))
+    trayectorias.append((xs, ys, color, label))
 
-# ── Visualización ─────────────────────────────────────────────────────────
-fig, ax = plt.subplots(figsize=(9,7))
+# ── Visualización idéntica a referencia + trayectorias encima ─────────────
+fig, ax = plt.subplots(figsize=(9, 7))
 
 V_plot = np.clip(V, -500, 500)
 cf = ax.contourf(X, Y, V_plot, levels=60, cmap='bone')
-plt.colorbar(cf, ax=ax)
+plt.colorbar(cf, ax=ax, label='Potencial eléctrico V')
 
 ax.contour(X, Y, V_plot, levels=10, colors='white', linewidths=0.5)
 
@@ -149,24 +116,36 @@ with np.errstate(invalid='ignore'):
     Ex_s = np.where(np.isfinite(Ex), Ex, 0.0)
     Ey_s = np.where(np.isfinite(Ey), Ey, 0.0)
 
-ax.streamplot(xx, yy, Ex_s, Ey_s, density=1.2)
+mask_roja = ((X >= x_roja-abs(ancho)) & (X <= x_roja+abs(ancho)) &
+             (Y >= -largo_roja/2)      & (Y <= largo_roja/2))
+mask_azul = ((X >= x_azul-abs(ancho)) & (X <= x_azul+abs(ancho)) &
+             (Y >= -largo_azul/2)      & (Y <= largo_azul/2))
+Ex_s[mask_roja | mask_azul] = np.nan
+Ey_s[mask_roja | mask_azul] = np.nan
 
-# Placas
+ax.streamplot(xx, yy, Ex_s, Ey_s,
+              color='#00cc44', linewidth=1.0, density=1.5, arrowsize=1.2)
+
 ax.add_patch(Rectangle((x_roja-abs(ancho), -largo_roja/2),
-                       2*abs(ancho), largo_roja, color='red', alpha=0.7))
+                        2*abs(ancho), largo_roja,
+                        color='red', alpha=0.7, label='Placa + (roja)'))
 ax.add_patch(Rectangle((x_azul-abs(ancho), -largo_azul/2),
-                       2*abs(ancho), largo_azul, color='blue', alpha=0.7))
+                        2*abs(ancho), largo_azul,
+                        color='blue', alpha=0.7, label='Placa − (azul)'))
 
-# Trayectorias
-for xs, ys, color in trayectorias:
-    ax.plot(xs, ys, color=color, linewidth=1)
+_vistos = set()
+for xs, ys, color, label in trayectorias:
+    lbl = label if label not in _vistos else '_nolegend_'
+    _vistos.add(label)
+    ax.plot(xs, ys, color=color, linewidth=1.2, alpha=0.9, label=lbl, zorder=5)
 
-ax.set_xlim(-3,3)
-ax.set_ylim(-3,3)
+ax.set_xlim(-3, 3); ax.set_ylim(-3, 3)
 ax.set_aspect('equal')
-ax.set_title('Trayectorias de células (sanas vs infectadas)')
+ax.set_xlabel(r'$x$ (m)'); ax.set_ylabel(r'$y$ (m)')
+ax.set_title('Trayectorias de células (sanas vs infectadas)', fontsize=13)
+ax.legend(loc='upper right')
+ax.grid(True, linestyle='--', alpha=0.2)
 
 plt.tight_layout()
-plt.savefig(os.path.join(carpeta, 'trayectorias_malaria.png'), dpi=150)
-
+plt.savefig(os.path.join(carpeta, 'trayectorias_malaria.png'), dpi=150, bbox_inches='tight')
 print("Listo: trayectorias_malaria.png")
