@@ -2,7 +2,23 @@
 
 Simulación numérica del campo eléctrico y potencial electrostático generado por dos placas conductoras paralelas de distinto tamaño y carga, usando el principio de superposición de cargas puntuales discretas.
 
+```
 ---
+Simulación de campos eléctricos semi-continuos para un campo no uniforme
+
+
+Descripción general
+Esta parte del proyecto construye gráficamente un campo eléctrico generado por dos placas con una distribución de 500 cargas de signos opuestos para cada una. Se forma un campo eléctrico no uniforme útil para la detección de células de malaria que se comportarán distintos sobre el campo a comparación con células sanas.
+
+Modelo Físico
+Este es un sistema físico formado por dos placas cargadas eléctricamente. La placa roja está cargada positivamente y la placa azul está cargada negativamente, ambas almacenan 500 partículas. Como son placas de distintos signos, se genera un campo eléctrico entre ellas, para la que cada punto en el espacio será la suma vectorial del efecto de cada una de ellas. Esto sigue la Ley de Coulomb, que dice que el campo depende de la carga y disminuye con la distancia. 
+El campo eléctrico de la placa positiva sale y se dirige hacia la placa negativa. Este campo no es uniforme, ya que depende de la distancia y el tamaño de las placas. 
+	Comportamiento entre placas: si las placas fueran infinitas y del  mismo tamaño, el campo entre ellas sería uniforme, es decir, con la misma intensidad y dirección en toda la región. Pero en este caso, como las placas tienen tamaños distintos
+
+Explicación física de la gráfica 
+El Potencial (V) son las líneas curvas blancas que forman campos de relieve. Cerca de una carga puntual, podemos unir los puntos entre las posiciones que tienen el mismo potencial, creando curvas equipotenciales (escalar).
+El Campo eléctrico (E): región del espacio modificada por la presencia de las 1,000 cargas, donde las células experimentarán fuerzas de atracción y repulsión (vectorial).
+```
 
 ## Descripción
 
