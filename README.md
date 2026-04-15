@@ -17,9 +17,30 @@ Este repositorio modela ese principio paso a paso, desde un dipolo simple hasta 
 ```
 Actividades/
 ├── Dipolo/
-│   └── Dipolo_Electrico.py       # Campo eléctrico de un dipolo de cargas puntuales (2D)
-└── Placas_Cargadas/
-    └── Placas_Cargadas.py        # Campo 3D de dos placas con distribución de cargas
+│   ├── Dipolo_Electrico.py               # Campo eléctrico 2D de un dipolo de cargas puntuales
+│   ├── Documentacion_Dipolo.md           # Documentación detallada
+│   └── campo_electrico_dipolo.png        # Imagen generada
+│
+├── Placas_Cargadas/
+│   ├── Placas_Cargadas.py                # Campo 3D de dos placas con distribución discreta de cargas
+│   ├── Documentacion_Placas_Cargadas.md  # Documentación detallada
+│   └── campo_placas_paralelas.png        # Imagen generada
+│
+├── Campos_Malaria/
+│   ├── Campos_Malaria.py                 # Campo no uniforme de placas asimétricas + potencial
+│   ├── Documentacion_Campo_Malaria.md    # Documentación detallada
+│   └── campo_placas_malaria.png          # Imagen generada
+│
+├── Celulas_Simuladas/
+│   ├── Simulacion_Malaria.py             # Trayectorias de células sanas vs infectadas
+│   ├── Documentacion_Celulas_Simuladas.md# Documentación detallada
+│   └── trayectorias_malaria.png          # Imagen generada
+│
+└── Version_Final_Segmentada/             # Versión modular (en desarrollo)
+    ├── main.py
+    ├── campoElectrico.py
+    ├── trayectorias.py
+    └── grafico.py
 ```
 
 ---
@@ -29,21 +50,32 @@ Actividades/
 ### 1. Dipolo Eléctrico
 Campo vectorial 2D de dos cargas puntuales (+q, −q) usando superposición.
 - Malla `meshgrid` con `quiver` normalizado
-- Exporta PDF vectorial
+- Exporta PNG
 
 ### 2. Placas Cargadas (campo 3D)
-Arreglo de cargas distribuidas en dos placas paralelas (positiva y negativa).
+Arreglo de cargas distribuidas en dos placas paralelas del mismo tamaño (positiva y negativa).
 - Visualización 3D con `Poly3DCollection` (prismas) + `quiver3`
 - Principio de superposición sobre `Nq` cargas por placa
 - Máscara para no dibujar flechas dentro de las placas
 
-### 3. Campo No Uniforme *(próximamente)*
-Electrodos asimétricos generando gradiente de campo → condición necesaria para dielectroforesis.
+### 3. Campo No Uniforme — Configuración para Malaria
+Dos placas asimétricas (larga positiva, corta negativa) generando el gradiente de campo necesario para dielectroforesis.
+- Malla de alta resolución (1000×1000) con `Nq = 500` cargas por placa
+- Mapa de potencial (`contourf`), líneas equipotenciales y líneas de campo (`streamplot`)
+- Exporta PNG sin abrir ventana gráfica (backend `Agg`)
 
-### 4. Simulación de Células *(próximamente)*
-Trayectoria de glóbulos rojos sanos vs infectados bajo la fuerza dielectroforética:
+### 4. Simulación de Células — Trayectorias Sanas vs Infectadas
+Integración numérica (Euler explícito) de 30 células bajo la fuerza de Coulomb del campo asimétrico.
+- Células sanas (`q = 0.8e-6 C`) y células infectadas (`q = 1.4e-6 C`)
+- Ruido aleatorio en la carga para mayor realismo
+- Trayectorias superpuestas sobre la visualización del campo de fondo
 
-$$\vec{F}_{DEP} \propto \nabla|\vec{E}|^2$$
+### 5. Versión Final Segmentada *(en desarrollo)*
+Refactorización del código en módulos independientes para mayor mantenibilidad:
+- `campoElectrico.py` — cálculo del campo y potencial
+- `trayectorias.py` — simulación dinámica de partículas
+- `grafico.py` — visualización y exportación
+- `main.py` — punto de entrada principal
 
 ---
 
@@ -66,9 +98,11 @@ Correr siempre desde la **raíz del proyecto**:
 ```bash
 python Actividades/Dipolo/Dipolo_Electrico.py
 python Actividades/Placas_Cargadas/Placas_Cargadas.py
+python Actividades/Campos_Malaria/Campos_Malaria.py
+python Actividades/Celulas_Simuladas/Simulacion_Malaria.py
 ```
 
-Los archivos PDF/PNG se guardan automáticamente en la carpeta de cada script.
+Los archivos PNG se guardan automáticamente en la carpeta de cada script.
 
 ---
 
